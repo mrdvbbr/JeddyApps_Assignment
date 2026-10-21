@@ -17,6 +17,7 @@ android {
 dependencies {
     implementation(projects.domain)
     implementation(projects.core.network)
+    implementation(projects.core.local)
     implementation(libs.gson)
     implementation(libs.kotlinx.coroutines.core)
     implementation(libs.androidx.paging.common)

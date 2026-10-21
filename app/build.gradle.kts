@@ -5,6 +5,7 @@ plugins {
     alias(libs.plugins.kotlin.compose)
     alias(libs.plugins.hilt.android)
     alias(libs.plugins.ksp)
+    alias(libs.plugins.kotlin.serialization)
 }
 
 val localProperties = Properties().apply {
@@ -58,10 +59,15 @@ android {
 
 dependencies {
     implementation(projects.core.network)
+    implementation(projects.core.local)
     implementation(projects.core.ui)
     implementation(projects.data)
     implementation(projects.domain)
     implementation(projects.feature.list)
+    implementation(projects.feature.favourites)
+    implementation(libs.androidx.navigation.compose)
+    implementation(libs.kotlinx.serialization.json)
+    implementation(libs.androidx.compose.material.icons.core)
     implementation(platform(libs.androidx.compose.bom))
     implementation(libs.androidx.activity.compose)
     implementation(libs.androidx.compose.material3)

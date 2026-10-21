@@ -1,4 +1,4 @@
-package com.bbr.jeddyapps.feature.list.components
+package com.bbr.jeddyapps.core.ui.components.movie
 
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column

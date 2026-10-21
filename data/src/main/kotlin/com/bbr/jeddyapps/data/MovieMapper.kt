@@ -1,5 +1,6 @@
 package com.bbr.jeddyapps.data
 
+import com.bbr.jeddyapps.core.local.MovieEntity
 import com.bbr.jeddyapps.core.network.MovieDto
 import com.bbr.jeddyapps.core.network.MoviePageDto
 import com.bbr.jeddyapps.domain.model.Movie
@@ -26,3 +27,18 @@ internal fun MovieDto.toDomain(): Movie? {
         posterUrl = posterUrl?.trim()?.takeIf { it.isNotEmpty() && !it.equals("N/A", ignoreCase = true) },
     )
 }
+
+internal fun Movie.toEntity(): MovieEntity = MovieEntity(
+    id = id,
+    title = title,
+    year = year,
+    posterUrl = posterUrl,
+)
+
+internal fun MovieEntity.toDomain(): Movie = Movie(
+    id = id,
+    title = title,
+    year = year,
+    posterUrl = posterUrl,
+    isLiked = true,
+)

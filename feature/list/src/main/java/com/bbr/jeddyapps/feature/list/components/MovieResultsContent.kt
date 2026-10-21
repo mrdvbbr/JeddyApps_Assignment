@@ -21,12 +21,14 @@ import com.bbr.jeddyapps.domain.model.Movie
 import com.bbr.jeddyapps.domain.error.MovieError
 import com.bbr.jeddyapps.domain.repository.MovieRepositoryException
 import com.bbr.jeddyapps.feature.list.R
-import com.bbr.jeddyapps.feature.list.messageResource
+import com.bbr.jeddyapps.core.ui.error.messageResource
+import com.bbr.jeddyapps.core.ui.components.movie.MovieGrid
 import kotlinx.coroutines.flow.MutableStateFlow
 
 @Composable
 internal fun MovieResultsContent(
     movies: LazyPagingItems<Movie>,
+    onToggleLike: (Movie) -> Unit = {},
     modifier: Modifier = Modifier,
 ) {
     val refresh = movies.loadState.refresh
@@ -38,7 +40,11 @@ internal fun MovieResultsContent(
                 onRetry = movies::retry,
             )
             movies.itemCount == 0 -> EmptyContent(message = stringResource(R.string.no_movies_found))
-            else -> MovieGrid(movies = movies, modifier = Modifier.fillMaxSize())
+            else -> MovieGrid(
+                movies = movies,
+                onToggleLike = onToggleLike,
+                modifier = Modifier.fillMaxSize(),
+            )
         }
     }
 }

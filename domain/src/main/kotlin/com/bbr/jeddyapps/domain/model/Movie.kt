@@ -5,6 +5,7 @@ data class Movie(
     val title: String,
     val year: String,
     val posterUrl: String?,
+    val isLiked: Boolean = false,
 )
 
 data class MoviePage(

@@ -9,4 +9,9 @@
     <string name="error_rate_limited">The request limit has been reached. Please try again later.</string>
     <string name="error_invalid_response">We couldn’t load the movies. Please try again.</string>
     <string name="error_unknown">We couldn’t complete this request. Please try again.</string>
+    <string name="error_invalid_query">Try a more specific movie title.</string>
+    <string name="year_unavailable">Year unavailable</string>
+    <string name="untitled_movie">Untitled movie</string>
+    <string name="like_movie">Add to favourites</string>
+    <string name="unlike_movie">Remove from favourites</string>
 </resources>

@@ -1,4 +1,4 @@
-package com.bbr.jeddyapps.feature.list.components
+package com.bbr.jeddyapps.core.ui.components.movie
 
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.PaddingValues
@@ -20,11 +20,15 @@ import androidx.paging.compose.collectAsLazyPagingItems
 import androidx.paging.compose.itemKey
 import com.bbr.jeddyapps.core.ui.theme.MovieTheme
 import com.bbr.jeddyapps.domain.model.Movie
-import com.bbr.jeddyapps.feature.list.messageResource
+import com.bbr.jeddyapps.core.ui.error.messageResource
 import kotlinx.coroutines.flow.MutableStateFlow
 
 @Composable
-internal fun MovieGrid(movies: LazyPagingItems<Movie>, modifier: Modifier = Modifier) {
+fun MovieGrid(
+    movies: LazyPagingItems<Movie>,
+    onToggleLike: (Movie) -> Unit = {},
+    modifier: Modifier = Modifier,
+) {
     LazyVerticalGrid(
         columns = GridCells.Adaptive(minSize = 150.dp),
         contentPadding = PaddingValues(start = 16.dp, end = 16.dp, bottom = 24.dp),
@@ -33,7 +37,12 @@ internal fun MovieGrid(movies: LazyPagingItems<Movie>, modifier: Modifier = Modi
         modifier = modifier.fillMaxSize(),
     ) {
         items(count = movies.itemCount, key = movies.itemKey(Movie::id)) { index ->
-            movies[index]?.let { MovieCard(movie = it) }
+            movies[index]?.let { movie ->
+                MovieCard(
+                    movie = movie,
+                    onToggleLike = { onToggleLike(movie) },
+                )
+            }
         }
         item(span = { GridItemSpan(maxLineSpan) }) {
             val error = (movies.loadState.append as? LoadState.Error)?.error

@@ -7,6 +7,12 @@ import kotlinx.coroutines.flow.Flow
 
 interface MovieRepository {
     fun searchMovies(query: String): Flow<PagingData<Movie>>
+    suspend fun addLikedMovie(movie: Movie)
+    suspend fun removeLikedMovie(movieId: String)
+    suspend fun isMovieLiked(id: String): Boolean
+    fun observeMovieLiked(id: String): Flow<Boolean>
+    fun getLikedMovies(): Flow<PagingData<Movie>>
+    fun getLikedMovieIds(): Flow<Set<String>>
 }
 
 class MovieRepositoryException(

@@ -5,12 +5,15 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.SnackbarHost
+import androidx.compose.material3.SnackbarHostState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalSoftwareKeyboardController
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.Lifecycle
@@ -21,6 +24,7 @@ import androidx.paging.PagingData
 import androidx.paging.compose.LazyPagingItems
 import androidx.paging.compose.collectAsLazyPagingItems
 import com.bbr.jeddyapps.core.ui.theme.MovieTheme
+import com.bbr.jeddyapps.core.ui.error.messageResource
 import com.bbr.jeddyapps.domain.model.Movie
 import com.bbr.jeddyapps.feature.list.components.MovieResultsContent
 import com.bbr.jeddyapps.feature.list.components.MovieSearchBar
@@ -33,18 +37,28 @@ fun HomeScreen() {
     val pagingItems = viewModel.movies.collectAsLazyPagingItems()
     val keyboardController = LocalSoftwareKeyboardController.current
     val lifecycleOwner = LocalLifecycleOwner.current
+    val context = LocalContext.current
+    val snackbarHostState = remember { SnackbarHostState() }
 
-    LaunchedEffect(viewModel, lifecycleOwner, keyboardController) {
+    LaunchedEffect(viewModel, lifecycleOwner, keyboardController, context, snackbarHostState) {
         lifecycleOwner.repeatOnLifecycle(Lifecycle.State.STARTED) {
             viewModel.sideEffects.collect { effect ->
                 when (effect) {
                     HomeEffect.HideKeyboard -> keyboardController?.hide()
+                    is HomeEffect.ShowError -> snackbarHostState.showSnackbar(
+                        context.getString(effect.error.messageResource()),
+                    )
                 }
             }
         }
     }
 
-    ScreenContent(state = state, movies = pagingItems, onIntent = viewModel::onIntent)
+    ScreenContent(
+        state = state,
+        movies = pagingItems,
+        onIntent = viewModel::onIntent,
+        snackbarHostState = snackbarHostState,
+    )
 }
 
 @Composable
@@ -53,9 +67,11 @@ private fun ScreenContent(
     movies: LazyPagingItems<Movie>,
     onIntent: (HomeIntent) -> Unit,
     modifier: Modifier = Modifier,
+    snackbarHostState: SnackbarHostState = remember { SnackbarHostState() },
 ) {
     Scaffold(
         modifier = modifier,
+        snackbarHost = { SnackbarHost(snackbarHostState) },
     ) { padding ->
         Column(modifier = Modifier.fillMaxSize().padding(padding)) {
             MovieSearchBar(
@@ -65,6 +81,7 @@ private fun ScreenContent(
             )
             MovieResultsContent(
                 movies = movies,
+                onToggleLike = { onIntent(HomeIntent.ToggleLike(it)) },
                 modifier = Modifier.weight(1f).fillMaxWidth(),
             )
         }

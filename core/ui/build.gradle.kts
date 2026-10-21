@@ -15,12 +15,14 @@ android {
 }
 
 dependencies {
+    api(projects.domain)
     api(platform(libs.androidx.compose.bom))
     api(libs.androidx.compose.material3)
     implementation(libs.androidx.compose.material.icons.core)
     api(libs.androidx.compose.ui)
     api(libs.androidx.lifecycle.viewmodel.ktx)
     api(libs.kotlinx.coroutines.core)
+    api(libs.androidx.paging.compose)
     implementation(libs.androidx.compose.ui.tooling.preview)
     implementation(libs.coil.compose)
     implementation(libs.coil.network.okhttp)
