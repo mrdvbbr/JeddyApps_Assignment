@@ -21,7 +21,7 @@ internal fun MovieDto.toDomain(): Movie? {
         ?: return null
     return Movie(
         id = movieId,
-        title = title?.takeIf(String::isNotBlank) ?: "Untitled movie",
+        title = title.orEmpty(),
         year = year.orEmpty(),
         posterUrl = posterUrl?.trim()?.takeIf { it.isNotEmpty() && !it.equals("N/A", ignoreCase = true) },
     )

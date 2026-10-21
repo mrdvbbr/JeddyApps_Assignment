@@ -1,4 +1,12 @@
 <resources>
     <string name="retry">Try again</string>
     <string name="no_image">No image available</string>
+    <string name="no_items">Nothing to show yet.</string>
+    <string name="loading">Loading</string>
+    <string name="error_title">Something went wrong</string>
+    <string name="error_network">Check your internet connection and try again.</string>
+    <string name="error_service_unavailable">Movies are temporarily unavailable. Please try again later.</string>
+    <string name="error_rate_limited">The request limit has been reached. Please try again later.</string>
+    <string name="error_invalid_response">We couldn’t load the movies. Please try again.</string>
+    <string name="error_unknown">We couldn’t complete this request. Please try again.</string>
 </resources>

@@ -1,0 +1,8 @@
+<resources>
+    <string name="search_movies">Search movies</string>
+    <string name="clear_search">Clear search</string>
+    <string name="year_unavailable">Year unavailable</string>
+    <string name="untitled_movie">Untitled movie</string>
+    <string name="no_movies_found">No movies found. Try a different title.</string>
+    <string name="error_invalid_query">Try a more specific movie title.</string>
+</resources>

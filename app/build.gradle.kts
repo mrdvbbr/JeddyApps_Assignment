@@ -57,11 +57,11 @@ android {
 }
 
 dependencies {
-    implementation(project(":core:network"))
-    implementation(project(":core:ui"))
-    implementation(project(":data"))
-    implementation(project(":domain"))
-    implementation(project(":feature:list"))
+    implementation(projects.core.network)
+    implementation(projects.core.ui)
+    implementation(projects.data)
+    implementation(projects.domain)
+    implementation(projects.feature.list)
     implementation(platform(libs.androidx.compose.bom))
     implementation(libs.androidx.activity.compose)
     implementation(libs.androidx.compose.material3)
@@ -71,7 +71,6 @@ dependencies {
     implementation(libs.androidx.core.ktx)
     implementation(libs.androidx.lifecycle.runtime.ktx)
     implementation(libs.hilt.android)
-    implementation(libs.androidx.hilt.lifecycle.viewmodel.compose)
     ksp(libs.hilt.compiler)
     testImplementation(libs.junit)
     androidTestImplementation(platform(libs.androidx.compose.bom))

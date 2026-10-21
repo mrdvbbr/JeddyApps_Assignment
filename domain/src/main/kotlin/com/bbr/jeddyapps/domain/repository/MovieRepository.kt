@@ -1,6 +1,7 @@
 package com.bbr.jeddyapps.domain.repository
 
 import androidx.paging.PagingData
+import com.bbr.jeddyapps.domain.error.MovieError
 import com.bbr.jeddyapps.domain.model.Movie
 import kotlinx.coroutines.flow.Flow
 
@@ -9,6 +10,6 @@ interface MovieRepository {
 }
 
 class MovieRepositoryException(
-    message: String,
+    val error: MovieError,
     cause: Throwable? = null,
-) : Exception(message, cause)
+) : Exception(error.name, cause)

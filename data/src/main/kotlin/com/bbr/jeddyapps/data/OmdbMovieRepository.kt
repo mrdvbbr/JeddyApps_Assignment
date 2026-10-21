@@ -7,6 +7,7 @@ import com.bbr.jeddyapps.core.network.MoviePageDto
 import com.bbr.jeddyapps.domain.model.MoviePage
 import com.bbr.jeddyapps.domain.model.Movie
 import com.bbr.jeddyapps.data.paging.MovieSearchPagingSource
+import com.bbr.jeddyapps.domain.error.MovieError
 import com.bbr.jeddyapps.domain.repository.MovieRepository
 import com.bbr.jeddyapps.domain.repository.MovieRepositoryException
 import com.google.gson.JsonParseException
@@ -32,13 +33,13 @@ class OmdbMovieRepository @Inject constructor(
         checkPage(page)
         val trimmedQuery = query.trim()
         if (trimmedQuery.isEmpty()) {
-            throw MovieRepositoryException("Enter a movie title to search.")
+            throw MovieRepositoryException(MovieError.INVALID_QUERY)
         }
         return fetch(page) { networkDataSource.searchMovies(trimmedQuery, page) }
     }
 
     private fun checkPage(page: Int) {
-        if (page !in 1..100) throw MovieRepositoryException("The movie page must be between 1 and 100.")
+        if (page !in 1..100) throw MovieRepositoryException(MovieError.INVALID_QUERY)
     }
 
     private suspend fun fetch(page: Int, request: suspend () -> MoviePageDto): MoviePage = try {
@@ -50,31 +51,32 @@ class OmdbMovieRepository @Inject constructor(
                 MoviePage(movies = emptyList(), page = page, totalPages = 0)
             }
             response.response.equals("False", ignoreCase = true) -> {
-                throw MovieRepositoryException(response.error.messageForUser())
+                throw MovieRepositoryException(
+                    response.error.toMovieError(),
+                    IllegalStateException(response.error),
+                )
             }
-            else -> throw MovieRepositoryException("OMDb returned an unreadable response. Please try again.")
+            else -> throw MovieRepositoryException(MovieError.INVALID_RESPONSE)
         }
     } catch (error: IOException) {
-        throw MovieRepositoryException("Unable to connect to OMDb. Check your connection and try again.", error)
+        throw MovieRepositoryException(MovieError.NETWORK, error)
     } catch (error: HttpException) {
-        throw MovieRepositoryException(error.messageForUser(), error)
+        throw MovieRepositoryException(error.toMovieError(), error)
     } catch (error: JsonParseException) {
-        throw MovieRepositoryException("OMDb returned an unreadable response. Please try again.", error)
+        throw MovieRepositoryException(MovieError.INVALID_RESPONSE, error)
     }
 }
 
-private fun HttpException.messageForUser(): String = when (code()) {
-    401, 403 -> "OMDb rejected the API key. Check your OMDB_API_KEY and rebuild the app."
-    429 -> "OMDb request limit reached. Please try again later."
-    in 500..599 -> "OMDb is temporarily unavailable. Please try again later."
-    else -> "Unable to load movies from OMDb (HTTP ${code()}). Please try again."
+private fun HttpException.toMovieError(): MovieError = when (code()) {
+    401, 403 -> MovieError.SERVICE_UNAVAILABLE
+    429 -> MovieError.RATE_LIMITED
+    in 500..599 -> MovieError.SERVICE_UNAVAILABLE
+    else -> MovieError.UNKNOWN
 }
 
-private fun String?.messageForUser(): String = when {
-    this.orEmpty().contains("api key", ignoreCase = true) ->
-        "OMDb rejected the API key. Check your OMDB_API_KEY and rebuild the app."
-    this.orEmpty().contains("limit", ignoreCase = true) ->
-        "OMDb request limit reached. Please try again later."
-    this.isNullOrBlank() -> "OMDb could not complete the search. Please try again."
-    else -> "OMDb could not complete the search: ${trim()} Please refine your search and try again."
+private fun String?.toMovieError(): MovieError = when {
+    this.orEmpty().contains("api key", ignoreCase = true) -> MovieError.SERVICE_UNAVAILABLE
+    this.orEmpty().contains("limit", ignoreCase = true) -> MovieError.RATE_LIMITED
+    this.orEmpty().contains("too many results", ignoreCase = true) -> MovieError.INVALID_QUERY
+    else -> MovieError.UNKNOWN
 }

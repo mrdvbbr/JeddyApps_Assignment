@@ -17,8 +17,8 @@ android {
 }
 
 dependencies {
-    api(project(":domain"))
-    api(project(":core:ui"))
+    api(projects.domain)
+    api(projects.core.ui)
     implementation(platform(libs.androidx.compose.bom))
     implementation(libs.androidx.compose.material3)
     implementation(libs.androidx.compose.material.icons.core)
@@ -30,6 +30,7 @@ dependencies {
     api(libs.androidx.paging.common)
     implementation(libs.androidx.paging.compose)
     implementation(libs.hilt.android)
+    implementation(libs.androidx.hilt.lifecycle.viewmodel.compose)
     ksp(libs.hilt.compiler)
     testImplementation(libs.junit)
     testImplementation(libs.kotlinx.coroutines.test)

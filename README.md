@@ -24,9 +24,11 @@ Hilt creates the Home ViewModel and injects its use cases, repository, and netwo
 
 ViewModels extend `BaseViewModel<UIState, Intent, SideEffect>`, exposing a `StateFlow` for state, a `SharedFlow` for effects, and an `onIntent` function. Compose observes both flows with lifecycle-aware collection.
 
-Implementations use mutable flows directly, while screens consume the read-only `BaseViewModel` contract; Hilt resolves the concrete ViewModel at the app boundary.
+The base ViewModel exposes read-only state/effects and protected mutable flows for implementations. `HomeScreen()` obtains its ViewModel through Hilt internally and passes state, paged items, and callbacks to `ScreenContent()` in the same file.
 
-The repository constructs the `Pager` and paging source in `data`, exposing `Flow<PagingData<Movie>>` through the repository contract and search use case. Domain uses the platform-independent Paging common API. The ViewModel exposes a debounced flow cached in its scope; `HomeScreen()` collects it directly with `collectAsLazyPagingItems()`. `HomeState` contains only search fields. The activity passes the read-only base ViewModel and paging flow to the screen.
+The repository constructs the `Pager` and paging source in `data`, exposing `Flow<PagingData<Movie>>` through the repository contract and search use case. Domain uses the platform-independent Paging common API. The ViewModel exposes a debounced flow cached in its scope; `HomeScreen()` collects it directly with `collectAsLazyPagingItems()`. `HomeState` contains only the query. The activity only calls `HomeScreen()`.
+
+Data maps failures to `MovieError` types, preserving technical causes for diagnostics. The UI maps these types to string resources and uses Paging load states for full-screen or next-page error/retry presentation. API and exception messages are not displayed directly. UI labels, empty states, fallbacks, and error messages live in the owning module’s `strings.xml`.
 
 ## OMDb setup
 

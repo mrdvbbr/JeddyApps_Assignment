@@ -3,6 +3,7 @@ package com.bbr.jeddyapps.data
 import com.bbr.jeddyapps.core.network.MovieApi
 import com.bbr.jeddyapps.core.network.MoviePageDto
 import com.bbr.jeddyapps.core.network.OmdbApiKeyConfigured
+import com.bbr.jeddyapps.domain.error.MovieError
 import com.bbr.jeddyapps.domain.repository.MovieRepositoryException
 import javax.inject.Inject
 
@@ -23,7 +24,8 @@ class RetrofitMovieNetworkDataSource @Inject constructor(
     private fun checkConfiguration() {
         if (!apiKeyConfigured) {
             throw MovieRepositoryException(
-                "Add your OMDb API key to local.properties as OMDB_API_KEY, then rebuild the app.",
+                MovieError.SERVICE_UNAVAILABLE,
+                IllegalStateException("OMDB_API_KEY is not configured"),
             )
         }
     }
