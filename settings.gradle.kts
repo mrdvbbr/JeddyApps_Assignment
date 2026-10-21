@@ -1,3 +1,4 @@
+enableFeaturePreview("TYPESAFE_PROJECT_ACCESSORS")
 pluginManagement {
     repositories {
         google {
@@ -22,6 +23,8 @@ dependencyResolutionManagement {
     }
 }
 
-rootProject.name = "JeddyApps Assignment"
+rootProject.name = "JeddyAppsAssignment"
 include(":app")
- 
+include(":core:network", ":core:local", ":core:ui")
+include(":data", ":domain")
+include(":feature:list", ":feature:detail")
