@@ -1,0 +1,11 @@
+<resources>
+    <string name="movie_detail_title">Movie Details</string>
+    <string name="back">Back</string>
+    <string name="plot_heading">Plot</string>
+    <string name="director_heading">Director</string>
+    <string name="writer_heading">Writer</string>
+    <string name="actors_heading">Actors</string>
+    <string name="awards_heading">Awards</string>
+    <string name="ratings_heading">IMDb Rating</string>
+    <string name="votes_format">%1$s votes</string>
+</resources>

@@ -1,9 +1,11 @@
 package com.bbr.jeddyapps.data
 
 import com.bbr.jeddyapps.core.local.MovieEntity
+import com.bbr.jeddyapps.core.network.MovieDetailDto
 import com.bbr.jeddyapps.core.network.MovieDto
 import com.bbr.jeddyapps.core.network.MoviePageDto
 import com.bbr.jeddyapps.domain.model.Movie
+import com.bbr.jeddyapps.domain.model.MovieDetail
 import com.bbr.jeddyapps.domain.model.MoviePage
 
 internal fun MoviePageDto.toDomain(page: Int): MoviePage = MoviePage(
@@ -42,3 +44,29 @@ internal fun MovieEntity.toDomain(): Movie = Movie(
     posterUrl = posterUrl,
     isLiked = true,
 )
+
+internal fun MovieDetailDto.toDomain(isLiked: Boolean): MovieDetail {
+    val clean = { value: String? ->
+        value?.trim()?.takeIf { it.isNotEmpty() && !it.equals("N/A", ignoreCase = true) }
+    }
+    return MovieDetail(
+        id = id?.trim().orEmpty(),
+        title = title?.trim().orEmpty(),
+        year = year?.trim().orEmpty(),
+        rated = clean(rated),
+        released = clean(released),
+        runtime = clean(runtime),
+        genre = clean(genre),
+        director = clean(director),
+        writer = clean(writer),
+        actors = clean(actors),
+        plot = clean(plot),
+        language = clean(language),
+        country = clean(country),
+        awards = clean(awards),
+        posterUrl = clean(posterUrl),
+        imdbRating = clean(imdbRating),
+        imdbVotes = clean(imdbVotes),
+        isLiked = isLiked,
+    )
+}

@@ -13,6 +13,7 @@ import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import com.bbr.jeddyapps.components.AppNavigationBar
+import com.bbr.jeddyapps.feature.detail.DetailScreen
 import com.bbr.jeddyapps.feature.favourites.FavouritesScreen
 import com.bbr.jeddyapps.feature.list.HomeScreen
 import com.bbr.jeddyapps.navigation.AppDestination
@@ -21,6 +22,7 @@ import com.bbr.jeddyapps.navigation.AppDestination
 fun MovieApp() {
     val navController = rememberNavController()
     val backStackEntry by navController.currentBackStackEntryAsState()
+    val isDetail = backStackEntry?.destination?.hasRoute<AppDestination.Detail>() == true
     val selectedDestination = if (backStackEntry?.destination?.hasRoute<AppDestination.Favourites>() == true) {
         AppDestination.Favourites
     } else {
@@ -29,16 +31,18 @@ fun MovieApp() {
 
     Scaffold(
         bottomBar = {
-            AppNavigationBar(
-                selectedDestination = selectedDestination,
-                onDestinationSelected = { destination ->
-                    navController.navigate(destination) {
-                        popUpTo<AppDestination.Movies> { saveState = true }
-                        launchSingleTop = true
-                        restoreState = true
-                    }
-                },
-            )
+            if (!isDetail) {
+                AppNavigationBar(
+                    selectedDestination = selectedDestination,
+                    onDestinationSelected = { destination ->
+                        navController.navigate(destination) {
+                            popUpTo<AppDestination.Movies> { saveState = true }
+                            launchSingleTop = true
+                            restoreState = true
+                        }
+                    },
+                )
+            }
         },
     ) { padding ->
         NavHost(
@@ -46,8 +50,25 @@ fun MovieApp() {
             startDestination = AppDestination.Movies,
             modifier = Modifier.fillMaxSize().padding(padding).consumeWindowInsets(padding),
         ) {
-            composable<AppDestination.Movies> { HomeScreen() }
-            composable<AppDestination.Favourites> { FavouritesScreen() }
+            composable<AppDestination.Movies> {
+                HomeScreen(
+                    onMovieClick = { movie ->
+                        navController.navigate(AppDestination.Detail(movie.id))
+                    },
+                )
+            }
+            composable<AppDestination.Favourites> {
+                FavouritesScreen(
+                    onMovieClick = { movie ->
+                        navController.navigate(AppDestination.Detail(movie.id))
+                    },
+                )
+            }
+            composable<AppDestination.Detail> {
+                DetailScreen(
+                    onNavigateBack = { navController.popBackStack() },
+                )
+            }
         }
     }
 }

@@ -2,6 +2,7 @@ package com.bbr.jeddyapps.di
 
 import com.bbr.jeddyapps.domain.repository.MovieRepository
 import com.bbr.jeddyapps.domain.usecase.GetLikedMovies
+import com.bbr.jeddyapps.domain.usecase.GetMovieDetail
 import com.bbr.jeddyapps.domain.usecase.IsMovieLiked
 import com.bbr.jeddyapps.domain.usecase.ObserveLikedMovieIds
 import com.bbr.jeddyapps.domain.usecase.SearchMovies
@@ -25,6 +26,9 @@ object UseCaseModule {
 
     @Provides
     fun provideGetLikedMovies(repository: MovieRepository): GetLikedMovies = GetLikedMovies(repository)
+
+    @Provides
+    fun provideGetMovieDetail(repository: MovieRepository): GetMovieDetail = GetMovieDetail(repository)
 
     @Provides
     fun provideObserveLikedMovieIds(repository: MovieRepository): ObserveLikedMovieIds =

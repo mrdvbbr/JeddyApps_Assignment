@@ -6,6 +6,7 @@ import com.bbr.jeddyapps.core.ui.viewmodel.BaseViewModel
 import com.bbr.jeddyapps.domain.model.Movie
 import com.bbr.jeddyapps.domain.error.MovieError
 import com.bbr.jeddyapps.domain.repository.MovieRepositoryException
+import com.bbr.jeddyapps.domain.usecase.ObserveLikedMovieIds
 import com.bbr.jeddyapps.domain.usecase.SearchMovies
 import com.bbr.jeddyapps.domain.usecase.ToggleMovieLike
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -13,10 +14,13 @@ import javax.inject.Inject
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.FlowPreview
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.debounce
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.flatMapLatest
+import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 
@@ -25,7 +29,10 @@ import kotlinx.coroutines.launch
 class HomeViewModel @Inject constructor(
     private val searchMovies: SearchMovies,
     private val toggleMovieLike: ToggleMovieLike,
+    private val observeLikedMovieIds: ObserveLikedMovieIds,
 ) : BaseViewModel<HomeState, HomeIntent, HomeEffect>(HomeState()) {
+
+    private var observeLikedIdsJob: Job? = null
 
     val movies = state.map { it.query.trim() }
         .debounce { if (it.isEmpty()) 0L else 350L }
@@ -38,6 +45,7 @@ class HomeViewModel @Inject constructor(
             is HomeIntent.QueryChanged -> onQueryChanged(intent.query)
             HomeIntent.ClearSearch -> onClearSearch()
             is HomeIntent.ToggleLike -> onToggleLike(intent.movie)
+            is HomeIntent.DisplayedMoviesChanged -> onDisplayedMoviesChanged(intent.movieIds)
         }
     }
 
@@ -50,10 +58,24 @@ class HomeViewModel @Inject constructor(
         viewModelScope.launch { mutableEffect.emit(HomeEffect.HideKeyboard) }
     }
 
+    private fun onDisplayedMoviesChanged(movieIds: List<String>) {
+        observeLikedIds(movieIds)
+    }
+
+    private fun observeLikedIds(ids: List<String>) {
+        observeLikedIdsJob?.cancel()
+        observeLikedIdsJob = observeLikedMovieIds(ids)
+            .onEach { likedIds ->
+                mutableState.update { it.copy(likedMovieIds = likedIds) }
+            }
+            .launchIn(viewModelScope)
+    }
+
     private fun onToggleLike(movie: Movie) {
         viewModelScope.launch {
             try {
-                toggleMovieLike(movie)
+                val isLiked = state.value.likedMovieIds?.contains(movie.id) ?: movie.isLiked
+                toggleMovieLike(movie.copy(isLiked = isLiked))
             } catch (exception: CancellationException) {
                 throw exception
             } catch (exception: Exception) {

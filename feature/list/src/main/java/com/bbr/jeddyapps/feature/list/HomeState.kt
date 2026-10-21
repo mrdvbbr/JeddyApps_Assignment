@@ -2,4 +2,5 @@ package com.bbr.jeddyapps.feature.list
 
 data class HomeState(
     val query: String = "",
+    val likedMovieIds: Set<String>? = null,
 )

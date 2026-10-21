@@ -31,7 +31,9 @@ import com.bbr.jeddyapps.feature.list.components.MovieSearchBar
 import kotlinx.coroutines.flow.MutableStateFlow
 
 @Composable
-fun HomeScreen() {
+fun HomeScreen(
+    onMovieClick: (Movie) -> Unit = {},
+) {
     val viewModel = hiltViewModel<HomeViewModel>()
     val state by viewModel.state.collectAsStateWithLifecycle()
     val pagingItems = viewModel.movies.collectAsLazyPagingItems()
@@ -53,10 +55,17 @@ fun HomeScreen() {
         }
     }
 
+    LaunchedEffect(pagingItems.itemSnapshotList.size) {
+        if (pagingItems.itemSnapshotList.isNotEmpty()) {
+            viewModel.onIntent(HomeIntent.DisplayedMoviesChanged())
+        }
+    }
+
     ScreenContent(
         state = state,
         movies = pagingItems,
         onIntent = viewModel::onIntent,
+        onMovieClick = onMovieClick,
         snackbarHostState = snackbarHostState,
     )
 }
@@ -67,6 +76,7 @@ private fun ScreenContent(
     movies: LazyPagingItems<Movie>,
     onIntent: (HomeIntent) -> Unit,
     modifier: Modifier = Modifier,
+    onMovieClick: (Movie) -> Unit = {},
     snackbarHostState: SnackbarHostState = remember { SnackbarHostState() },
 ) {
     Scaffold(
@@ -81,6 +91,8 @@ private fun ScreenContent(
             )
             MovieResultsContent(
                 movies = movies,
+                likedIds = state.likedMovieIds,
+                onMovieClick = onMovieClick,
                 onToggleLike = { onIntent(HomeIntent.ToggleLike(it)) },
                 modifier = Modifier.weight(1f).fillMaxWidth(),
             )

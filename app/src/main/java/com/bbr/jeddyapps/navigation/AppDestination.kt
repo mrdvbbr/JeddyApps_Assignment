@@ -9,4 +9,7 @@ internal sealed interface AppDestination {
 
     @Serializable
     data object Favourites : AppDestination
+
+    @Serializable
+    data class Detail(val movieId: String) : AppDestination
 }

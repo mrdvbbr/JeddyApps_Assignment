@@ -5,9 +5,11 @@ import androidx.paging.PagingConfig
 import androidx.paging.PagingData
 import androidx.paging.map
 import com.bbr.jeddyapps.core.local.MovieDao
+import com.bbr.jeddyapps.core.network.MovieDetailDto
 import com.bbr.jeddyapps.core.network.MoviePageDto
 import com.bbr.jeddyapps.domain.model.MoviePage
 import com.bbr.jeddyapps.domain.model.Movie
+import com.bbr.jeddyapps.domain.model.MovieDetail
 import com.bbr.jeddyapps.data.paging.MovieSearchPagingSource
 import com.bbr.jeddyapps.domain.error.MovieError
 import com.bbr.jeddyapps.domain.repository.MovieRepository
@@ -17,14 +19,13 @@ import retrofit2.HttpException
 import java.io.IOException
 import javax.inject.Inject
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.map
 
 class OmdbMovieRepository @Inject constructor(
     private val networkDataSource: MovieNetworkDataSource,
     private val movieDao: MovieDao,
 ) : MovieRepository {
-    private var currentPagingSource: MovieSearchPagingSource? = null
-
     override fun searchMovies(query: String): Flow<PagingData<Movie>> = Pager(
         config = PagingConfig(
             pageSize = 10,
@@ -32,21 +33,15 @@ class OmdbMovieRepository @Inject constructor(
             prefetchDistance = 2,
             enablePlaceholders = false,
         ),
-        pagingSourceFactory = {
-            MovieSearchPagingSource { page -> loadPage(query, page) }.also {
-                currentPagingSource = it
-            }
-        },
+        pagingSourceFactory = { MovieSearchPagingSource { page -> loadPage(query, page) } },
     ).flow
 
     override suspend fun addLikedMovie(movie: Movie) {
         movieDao.insert(movie.toEntity())
-        currentPagingSource?.invalidate()
     }
 
     override suspend fun removeLikedMovie(movieId: String) {
         movieDao.deleteById(movieId)
-        currentPagingSource?.invalidate()
     }
 
     override suspend fun isMovieLiked(id: String): Boolean = movieDao.isMovieLikedSync(id)
@@ -60,6 +55,43 @@ class OmdbMovieRepository @Inject constructor(
 
     override fun getLikedMovieIds(): Flow<Set<String>> =
         movieDao.getAllLikedMovieIds().map { it.toSet() }
+
+    override fun observeLikedMovieIds(ids: List<String>): Flow<Set<String>> {
+        if (ids.isEmpty()) return flowOf(emptySet())
+        return movieDao.observeLikedIds(ids).map { it.toSet() }
+    }
+
+    override suspend fun getMovieDetail(id: String): MovieDetail {
+        val trimmedId = id.trim()
+        if (trimmedId.isEmpty()) {
+            throw MovieRepositoryException(MovieError.INVALID_QUERY)
+        }
+        val isLiked = movieDao.isMovieLikedSync(trimmedId)
+        val dto = fetchDetail { networkDataSource.getMovieDetail(trimmedId) }
+        return dto.toDomain(isLiked = isLiked)
+    }
+
+    private suspend fun fetchDetail(request: suspend () -> MovieDetailDto): MovieDetailDto = try {
+        val response = request()
+        when {
+            response.response.equals("True", ignoreCase = true) -> response
+            response.response.equals("False", ignoreCase = true) -> {
+                throw MovieRepositoryException(
+                    response.error.toMovieError(),
+                    IllegalStateException(response.error),
+                )
+            }
+            else -> throw MovieRepositoryException(MovieError.INVALID_RESPONSE)
+        }
+    } catch (error: MovieRepositoryException) {
+        throw error
+    } catch (error: IOException) {
+        throw MovieRepositoryException(MovieError.NETWORK, error)
+    } catch (error: HttpException) {
+        throw MovieRepositoryException(error.toMovieError(), error)
+    } catch (error: JsonParseException) {
+        throw MovieRepositoryException(MovieError.INVALID_RESPONSE, error)
+    }
 
     private suspend fun loadPage(query: String, page: Int): MoviePage {
         checkPage(page)

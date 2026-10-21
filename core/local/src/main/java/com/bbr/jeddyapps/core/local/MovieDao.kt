@@ -24,6 +24,9 @@ interface MovieDao {
     @Query("SELECT id FROM movies WHERE id IN (:ids)")
     suspend fun getLikedIds(ids: List<String>): List<String>
 
+    @Query("SELECT id FROM movies WHERE id IN (:ids)")
+    fun observeLikedIds(ids: List<String>): Flow<List<String>>
+
     @Query("SELECT * FROM movies WHERE id = :id")
     suspend fun getMovieById(id: String): MovieEntity?
 

@@ -1,6 +1,7 @@
 package com.bbr.jeddyapps.data
 
 import com.bbr.jeddyapps.core.network.MovieApi
+import com.bbr.jeddyapps.core.network.MovieDetailDto
 import com.bbr.jeddyapps.core.network.MoviePageDto
 import com.bbr.jeddyapps.core.network.OmdbApiKeyConfigured
 import com.bbr.jeddyapps.domain.error.MovieError
@@ -9,6 +10,7 @@ import javax.inject.Inject
 
 interface MovieNetworkDataSource {
     suspend fun searchMovies(query: String, page: Int): MoviePageDto
+    suspend fun getMovieDetail(id: String): MovieDetailDto
 }
 
 class RetrofitMovieNetworkDataSource @Inject constructor(
@@ -19,6 +21,11 @@ class RetrofitMovieNetworkDataSource @Inject constructor(
     override suspend fun searchMovies(query: String, page: Int): MoviePageDto {
         checkConfiguration()
         return api.searchMovies(query, page)
+    }
+
+    override suspend fun getMovieDetail(id: String): MovieDetailDto {
+        checkConfiguration()
+        return api.getMovieDetail(id)
     }
 
     private fun checkConfiguration() {

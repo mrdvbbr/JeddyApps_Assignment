@@ -10,4 +10,10 @@ interface MovieApi {
         @Query("page") page: Int,
         @Query("type") type: String = "movie",
     ): MoviePageDto
+
+    @GET("./")
+    suspend fun getMovieDetail(
+        @Query("i") id: String,
+        @Query("plot") plot: String = "full",
+    ): MovieDetailDto
 }

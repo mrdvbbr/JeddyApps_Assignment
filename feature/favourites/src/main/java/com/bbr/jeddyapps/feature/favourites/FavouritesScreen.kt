@@ -26,7 +26,9 @@ import com.bbr.jeddyapps.feature.favourites.components.FavouritesContent
 import kotlinx.coroutines.flow.MutableStateFlow
 
 @Composable
-fun FavouritesScreen() {
+fun FavouritesScreen(
+    onMovieClick: (Movie) -> Unit = {},
+) {
     val viewModel = hiltViewModel<FavouritesViewModel>()
     val movies = viewModel.movies.collectAsLazyPagingItems()
     val lifecycleOwner = LocalLifecycleOwner.current
@@ -45,7 +47,12 @@ fun FavouritesScreen() {
         }
     }
 
-    ScreenContent(movies = movies, onIntent = viewModel::onIntent, snackbarHostState = snackbarHostState)
+    ScreenContent(
+        movies = movies,
+        onIntent = viewModel::onIntent,
+        onMovieClick = onMovieClick,
+        snackbarHostState = snackbarHostState,
+    )
 }
 
 @Composable
@@ -53,11 +60,13 @@ private fun ScreenContent(
     movies: LazyPagingItems<Movie>,
     onIntent: (FavouritesIntent) -> Unit,
     modifier: Modifier = Modifier,
+    onMovieClick: (Movie) -> Unit = {},
     snackbarHostState: SnackbarHostState = remember { SnackbarHostState() },
 ) {
     Scaffold(modifier = modifier, snackbarHost = { SnackbarHost(snackbarHostState) }) { padding ->
         FavouritesContent(
             movies = movies,
+            onMovieClick = onMovieClick,
             onToggleLike = { onIntent(FavouritesIntent.ToggleLike(it)) },
             modifier = Modifier
                 .fillMaxSize()

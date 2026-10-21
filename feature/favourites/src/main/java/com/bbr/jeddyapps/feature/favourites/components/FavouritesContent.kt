@@ -30,6 +30,7 @@ internal fun FavouritesContent(
     movies: LazyPagingItems<Movie>,
     onToggleLike: (Movie) -> Unit,
     modifier: Modifier = Modifier,
+    onMovieClick: (Movie) -> Unit = {},
 ) {
     val refresh = movies.loadState.refresh
     Box(modifier = modifier.fillMaxSize()) {
@@ -42,6 +43,7 @@ internal fun FavouritesContent(
             movies.itemCount == 0 -> FavouritesEmptyContent()
             else -> MovieGrid(
                 movies = movies,
+                onMovieClick = onMovieClick,
                 onToggleLike = onToggleLike,
                 modifier = Modifier.fillMaxSize().padding(top = 8.dp),
             )

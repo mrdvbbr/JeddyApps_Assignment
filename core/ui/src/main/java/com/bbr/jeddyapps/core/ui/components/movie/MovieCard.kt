@@ -34,10 +34,15 @@ import com.bbr.jeddyapps.core.ui.R
 @Composable
 internal fun MovieCard(
     movie: Movie,
+    isLiked: Boolean = movie.isLiked,
+    onClick: () -> Unit = {},
     onToggleLike: () -> Unit = {},
     modifier: Modifier = Modifier,
 ) {
-    Card(modifier = modifier.fillMaxWidth()) {
+    Card(
+        onClick = onClick,
+        modifier = modifier.fillMaxWidth(),
+    ) {
         Box(modifier = Modifier.fillMaxWidth().aspectRatio(2f / 3f)) {
             MoviePoster(
                 imageUrl = movie.posterUrl,
@@ -56,11 +61,11 @@ internal fun MovieCard(
                     .size(36.dp),
             ) {
                 Icon(
-                    imageVector = if (movie.isLiked) Icons.Default.Favorite else Icons.Default.FavoriteBorder,
+                    imageVector = if (isLiked) Icons.Default.Favorite else Icons.Default.FavoriteBorder,
                     contentDescription = stringResource(
-                        if (movie.isLiked) R.string.unlike_movie else R.string.like_movie,
+                        if (isLiked) R.string.unlike_movie else R.string.like_movie,
                     ),
-                    tint = if (movie.isLiked) MaterialTheme.colorScheme.error else MaterialTheme.colorScheme.onSurface,
+                    tint = if (isLiked) MaterialTheme.colorScheme.error else MaterialTheme.colorScheme.onSurface,
                     modifier = Modifier.size(20.dp),
                 )
             }

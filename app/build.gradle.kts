@@ -65,6 +65,7 @@ dependencies {
     implementation(projects.domain)
     implementation(projects.feature.list)
     implementation(projects.feature.favourites)
+    implementation(projects.feature.detail)
     implementation(libs.androidx.navigation.compose)
     implementation(libs.kotlinx.serialization.json)
     implementation(libs.androidx.compose.material.icons.core)

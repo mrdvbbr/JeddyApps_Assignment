@@ -28,6 +28,8 @@ import kotlinx.coroutines.flow.MutableStateFlow
 @Composable
 internal fun MovieResultsContent(
     movies: LazyPagingItems<Movie>,
+    likedIds: Set<String>? = null,
+    onMovieClick: (Movie) -> Unit = {},
     onToggleLike: (Movie) -> Unit = {},
     modifier: Modifier = Modifier,
 ) {
@@ -42,6 +44,8 @@ internal fun MovieResultsContent(
             movies.itemCount == 0 -> EmptyContent(message = stringResource(R.string.no_movies_found))
             else -> MovieGrid(
                 movies = movies,
+                likedIds = likedIds,
+                onMovieClick = onMovieClick,
                 onToggleLike = onToggleLike,
                 modifier = Modifier.fillMaxSize(),
             )

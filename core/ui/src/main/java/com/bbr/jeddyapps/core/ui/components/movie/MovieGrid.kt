@@ -26,6 +26,8 @@ import kotlinx.coroutines.flow.MutableStateFlow
 @Composable
 fun MovieGrid(
     movies: LazyPagingItems<Movie>,
+    likedIds: Set<String>? = null,
+    onMovieClick: (Movie) -> Unit = {},
     onToggleLike: (Movie) -> Unit = {},
     modifier: Modifier = Modifier,
 ) {
@@ -38,9 +40,12 @@ fun MovieGrid(
     ) {
         items(count = movies.itemCount, key = movies.itemKey(Movie::id)) { index ->
             movies[index]?.let { movie ->
+                val isLiked = likedIds?.contains(movie.id) ?: movie.isLiked
                 MovieCard(
                     movie = movie,
-                    onToggleLike = { onToggleLike(movie) },
+                    isLiked = isLiked,
+                    onClick = { onMovieClick(movie.copy(isLiked = isLiked)) },
+                    onToggleLike = { onToggleLike(movie.copy(isLiked = isLiked)) },
                 )
             }
         }
