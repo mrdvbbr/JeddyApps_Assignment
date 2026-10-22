@@ -41,8 +41,9 @@ Ad logic is isolated into a standalone library module with provider-agnostic con
 
 ## Release
 
-Pre-built, signed release APK is available in the repository:
-* **Release APK**: [`app/release/app-release.apk`](app/release/app-release.apk)
+Pre-built, signed release APK is available:
+* **GitHub Release**: [v1.0.0 Release & Download](https://github.com/mrdvbbr/JeddyApps_Assignment/releases/tag/v1.0.0)
+* **Direct APK**: [`app/release/app-release.apk`](app/release/app-release.apk)
 * Built with **R8 code minification**, **resource shrinking**, and ProGuard optimization.
 
 To build locally:
