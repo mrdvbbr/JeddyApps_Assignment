@@ -17,6 +17,7 @@ android {
 }
 
 dependencies {
+    implementation(project(":SDK"))
     api(projects.domain)
     api(projects.core.ui)
     implementation(platform(libs.androidx.compose.bom))

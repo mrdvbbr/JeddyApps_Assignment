@@ -15,7 +15,6 @@ interface MovieRepository {
     fun observeMovieLiked(id: String): Flow<Boolean>
     fun getLikedMovies(): Flow<PagingData<Movie>>
     fun getLikedMovieIds(): Flow<Set<String>>
-    fun observeLikedMovieIds(ids: List<String>): Flow<Set<String>>
 }
 
 class MovieRepositoryException(

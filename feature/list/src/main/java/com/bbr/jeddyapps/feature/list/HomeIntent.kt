@@ -6,5 +6,4 @@ sealed interface HomeIntent {
     data class QueryChanged(val query: String) : HomeIntent
     data object ClearSearch : HomeIntent
     data class ToggleLike(val movie: Movie) : HomeIntent
-    data class DisplayedMoviesChanged(val movieIds: List<String>) : HomeIntent
 }

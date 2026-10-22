@@ -1,6 +1,7 @@
 package com.bbr.jeddyapps.core.ui.components.movie
 
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.lazy.grid.GridCells
@@ -30,7 +31,12 @@ fun MovieGrid(
     onMovieClick: (Movie) -> Unit = {},
     onToggleLike: (Movie) -> Unit = {},
     modifier: Modifier = Modifier,
+    inlineContent: Map<Int, MovieGridInlineContent> = emptyMap(),
 ) {
+    val indexMapping = remember(movies.itemCount, inlineContent.keys.toSet()) {
+        MovieGridIndexMapping(movies.itemCount, inlineContent.keys)
+    }
+    val movieKey = movies.itemKey(Movie::id)
     LazyVerticalGrid(
         columns = GridCells.Adaptive(minSize = 150.dp),
         contentPadding = PaddingValues(start = 16.dp, end = 16.dp, bottom = 24.dp),
@@ -38,18 +44,36 @@ fun MovieGrid(
         verticalArrangement = Arrangement.spacedBy(16.dp),
         modifier = modifier.fillMaxSize(),
     ) {
-        items(count = movies.itemCount, key = movies.itemKey(Movie::id)) { index ->
-            movies[index]?.let { movie ->
-                val isLiked = likedIds?.contains(movie.id) ?: movie.isLiked
-                MovieCard(
-                    movie = movie,
-                    isLiked = isLiked,
-                    onClick = { onMovieClick(movie.copy(isLiked = isLiked)) },
-                    onToggleLike = { onToggleLike(movie.copy(isLiked = isLiked)) },
-                )
+        items(
+            count = indexMapping.itemCount,
+            key = { displayIndex ->
+                indexMapping.movieIndexAt(displayIndex)?.let(movieKey)
+                    // Long keys form a separate namespace from String movie IDs and paging keys.
+                    ?: inlineContent[displayIndex]?.key
+                    ?: (Long.MIN_VALUE + displayIndex)
+            },
+            contentType = { displayIndex ->
+                if (indexMapping.movieIndexAt(displayIndex) == null) "inline" else "movie"
+            },
+        ) { displayIndex ->
+            val movieIndex = indexMapping.movieIndexAt(displayIndex)
+            Box {
+                if (movieIndex == null) {
+                    inlineContent[displayIndex]?.content?.invoke()
+                } else {
+                    movies[movieIndex]?.let { movie ->
+                        val isLiked = likedIds?.contains(movie.id) ?: movie.isLiked
+                        MovieCard(
+                            movie = movie,
+                            isLiked = isLiked,
+                            onClick = { onMovieClick(movie.copy(isLiked = isLiked)) },
+                            onToggleLike = { onToggleLike(movie.copy(isLiked = isLiked)) },
+                        )
+                    }
+                }
             }
         }
-        item(span = { GridItemSpan(maxLineSpan) }) {
+        item(key = "movie-grid:paging-footer", span = { GridItemSpan(maxLineSpan) }) {
             val error = (movies.loadState.append as? LoadState.Error)?.error
                 ?: (movies.loadState.refresh as? LoadState.Error)?.error
             MoviePagingFooter(

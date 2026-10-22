@@ -21,13 +21,17 @@ import androidx.lifecycle.compose.LocalLifecycleOwner
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.repeatOnLifecycle
 import androidx.paging.PagingData
+import androidx.paging.LoadState
 import androidx.paging.compose.LazyPagingItems
 import androidx.paging.compose.collectAsLazyPagingItems
 import com.bbr.jeddyapps.core.ui.theme.MovieTheme
+import com.bbr.jeddyapps.core.ui.components.movie.MovieGridInlineContent
 import com.bbr.jeddyapps.core.ui.error.messageResource
 import com.bbr.jeddyapps.domain.model.Movie
 import com.bbr.jeddyapps.feature.list.components.MovieResultsContent
 import com.bbr.jeddyapps.feature.list.components.MovieSearchBar
+import com.bbr.jeddyapps.sdk.compose.NativeAdSlotContent
+import com.bbr.jeddyapps.sdk.compose.rememberSearchNativeAds
 import kotlinx.coroutines.flow.MutableStateFlow
 
 @Composable
@@ -41,6 +45,15 @@ fun HomeScreen(
     val lifecycleOwner = LocalLifecycleOwner.current
     val context = LocalContext.current
     val snackbarHostState = remember { SnackbarHostState() }
+    val resultCount = pagingItems.itemCount.takeUnless {
+        it == 0 && pagingItems.loadState.refresh is LoadState.Loading
+    }
+    val nativeAds = rememberSearchNativeAds(viewModel.nativeAdsSession, resultCount)
+    val inlineContent = nativeAds.mapValues { (_, slot) ->
+        MovieGridInlineContent(key = slot.id) {
+            NativeAdSlotContent(slot = slot, modifier = Modifier.fillMaxWidth())
+        }
+    }
 
     LaunchedEffect(viewModel, lifecycleOwner, keyboardController, context, snackbarHostState) {
         lifecycleOwner.repeatOnLifecycle(Lifecycle.State.STARTED) {
@@ -55,18 +68,13 @@ fun HomeScreen(
         }
     }
 
-    LaunchedEffect(pagingItems.itemSnapshotList.size) {
-        if (pagingItems.itemSnapshotList.isNotEmpty()) {
-            viewModel.onIntent(HomeIntent.DisplayedMoviesChanged())
-        }
-    }
-
     ScreenContent(
         state = state,
         movies = pagingItems,
         onIntent = viewModel::onIntent,
         onMovieClick = onMovieClick,
         snackbarHostState = snackbarHostState,
+        inlineContent = inlineContent,
     )
 }
 
@@ -78,6 +86,7 @@ private fun ScreenContent(
     modifier: Modifier = Modifier,
     onMovieClick: (Movie) -> Unit = {},
     snackbarHostState: SnackbarHostState = remember { SnackbarHostState() },
+    inlineContent: Map<Int, MovieGridInlineContent> = emptyMap(),
 ) {
     Scaffold(
         modifier = modifier,
@@ -92,6 +101,7 @@ private fun ScreenContent(
             MovieResultsContent(
                 movies = movies,
                 likedIds = state.likedMovieIds,
+                inlineContent = inlineContent,
                 onMovieClick = onMovieClick,
                 onToggleLike = { onIntent(HomeIntent.ToggleLike(it)) },
                 modifier = Modifier.weight(1f).fillMaxWidth(),

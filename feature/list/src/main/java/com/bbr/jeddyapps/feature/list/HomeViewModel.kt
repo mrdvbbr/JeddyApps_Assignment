@@ -9,12 +9,13 @@ import com.bbr.jeddyapps.domain.repository.MovieRepositoryException
 import com.bbr.jeddyapps.domain.usecase.ObserveLikedMovieIds
 import com.bbr.jeddyapps.domain.usecase.SearchMovies
 import com.bbr.jeddyapps.domain.usecase.ToggleMovieLike
+import com.bbr.jeddyapps.sdk.AdProvider
+import com.bbr.jeddyapps.sdk.compose.SearchNativeAdsSession
 import dagger.hilt.android.lifecycle.HiltViewModel
 import javax.inject.Inject
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.FlowPreview
-import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.debounce
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.flatMapLatest
@@ -30,9 +31,10 @@ class HomeViewModel @Inject constructor(
     private val searchMovies: SearchMovies,
     private val toggleMovieLike: ToggleMovieLike,
     private val observeLikedMovieIds: ObserveLikedMovieIds,
+    adProvider: AdProvider,
 ) : BaseViewModel<HomeState, HomeIntent, HomeEffect>(HomeState()) {
 
-    private var observeLikedIdsJob: Job? = null
+    val nativeAdsSession = SearchNativeAdsSession(adProvider, viewModelScope)
 
     val movies = state.map { it.query.trim() }
         .debounce { if (it.isEmpty()) 0L else 350L }
@@ -40,12 +42,15 @@ class HomeViewModel @Inject constructor(
         .flatMapLatest { searchMovies(it.ifBlank { INITIAL_QUERY }) }
         .cachedIn(viewModelScope)
 
+    init {
+        observeLikedIds()
+    }
+
     override fun onIntent(intent: HomeIntent) {
         when (intent) {
             is HomeIntent.QueryChanged -> onQueryChanged(intent.query)
             HomeIntent.ClearSearch -> onClearSearch()
             is HomeIntent.ToggleLike -> onToggleLike(intent.movie)
-            is HomeIntent.DisplayedMoviesChanged -> onDisplayedMoviesChanged(intent.movieIds)
         }
     }
 
@@ -58,13 +63,8 @@ class HomeViewModel @Inject constructor(
         viewModelScope.launch { mutableEffect.emit(HomeEffect.HideKeyboard) }
     }
 
-    private fun onDisplayedMoviesChanged(movieIds: List<String>) {
-        observeLikedIds(movieIds)
-    }
-
-    private fun observeLikedIds(ids: List<String>) {
-        observeLikedIdsJob?.cancel()
-        observeLikedIdsJob = observeLikedMovieIds(ids)
+    private fun observeLikedIds() {
+        observeLikedMovieIds()
             .onEach { likedIds ->
                 mutableState.update { it.copy(likedMovieIds = likedIds) }
             }

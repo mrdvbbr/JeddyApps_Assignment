@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="sdk_ad_attribution">Ad</string>
+    <string name="sdk_ad_loading">Loading ad</string>
+    <string name="sdk_ad_rating">%1$s / 5</string>
+    <string name="sdk_ad_learn_more">Sponsored</string>
+</resources>

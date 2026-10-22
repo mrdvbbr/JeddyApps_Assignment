@@ -23,6 +23,7 @@ import com.bbr.jeddyapps.domain.repository.MovieRepositoryException
 import com.bbr.jeddyapps.feature.list.R
 import com.bbr.jeddyapps.core.ui.error.messageResource
 import com.bbr.jeddyapps.core.ui.components.movie.MovieGrid
+import com.bbr.jeddyapps.core.ui.components.movie.MovieGridInlineContent
 import kotlinx.coroutines.flow.MutableStateFlow
 
 @Composable
@@ -32,6 +33,7 @@ internal fun MovieResultsContent(
     onMovieClick: (Movie) -> Unit = {},
     onToggleLike: (Movie) -> Unit = {},
     modifier: Modifier = Modifier,
+    inlineContent: Map<Int, MovieGridInlineContent> = emptyMap(),
 ) {
     val refresh = movies.loadState.refresh
     Box(modifier = modifier) {
@@ -48,6 +50,7 @@ internal fun MovieResultsContent(
                 onMovieClick = onMovieClick,
                 onToggleLike = onToggleLike,
                 modifier = Modifier.fillMaxSize(),
+                inlineContent = inlineContent,
             )
         }
     }

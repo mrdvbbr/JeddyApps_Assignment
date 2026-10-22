@@ -19,7 +19,6 @@ import retrofit2.HttpException
 import java.io.IOException
 import javax.inject.Inject
 import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.map
 
 class OmdbMovieRepository @Inject constructor(
@@ -55,11 +54,6 @@ class OmdbMovieRepository @Inject constructor(
 
     override fun getLikedMovieIds(): Flow<Set<String>> =
         movieDao.getAllLikedMovieIds().map { it.toSet() }
-
-    override fun observeLikedMovieIds(ids: List<String>): Flow<Set<String>> {
-        if (ids.isEmpty()) return flowOf(emptySet())
-        return movieDao.observeLikedIds(ids).map { it.toSet() }
-    }
 
     override suspend fun getMovieDetail(id: String): MovieDetail {
         val trimmedId = id.trim()
