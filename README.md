@@ -1,54 +1,66 @@
 # Jeddy Movies
 
-Android movie Home screen using Jetpack Compose Material 3, Paging 3, StateFlow, SharedFlow, Dagger Hilt, and OMDb.
+Android movie application developed as an assignment for **JeddyApps**, built with modern Android best practices: Jetpack Compose (Material 3), Clean Multi-Module Architecture, MVI, Paging 3, Room, Dagger Hilt, and Google Mobile Ads SDK.
 
-## Modules
+---
 
-```text
-app                 Typed navigation, Movies/Favourites tabs, Hilt application and providers
-core/network        Retrofit API, OMDb DTOs, authenticated OkHttp client
-core/ui             BaseViewModel, Material 3 theme, shared movie grid/cards and error components
-core/local          Room database, favourites entity/DAO, observable IDs and paging source
-domain              Movie models, repository contract, search use case
-data                Network datasource, repository/Pager, paging source, Hilt bindings, DTO mapping
-feature/list        Debounced movie search screen, components/previews, ViewModel, Intent, State, Effect
-feature/favourites  Room-paged favourites screen, empty/loading/error/grid states and ViewModel
-feature/detail      Empty module reserved for later
-sdk/                Reserved for future ad integrations
-```
+## Screenshots
 
-Home immediately loads an initial movie list with the search field empty. Because OMDb requires a search term, this list uses `Batman` internally (`INITIAL_QUERY` in `HomeViewModel`). Typing searches after a 350 ms debounce; clearing the field restores the initial list. Paging 3 loads OMDb's 10-result pages as the grid scrolls, with initial and next-page loading/error/retry states. A new query replaces the previous paging stream. Room persists favourites; search responses are not stored locally. No popular movie endpoint, detail screen, or ads are implemented.
+| Home (Native Ads in Grid) | Favourites Screen | Detail Screen | Interstitial Ad (Full Screen) |
+|:---:|:---:|:---:|:---:|
+| <img src="screenshots/01_home_screen.png" width="220" alt="Home Screen"/> | <img src="screenshots/02_favourites_screen.png" width="220" alt="Favourites Screen"/> | <img src="screenshots/03_detail_screen.png" width="220" alt="Detail Screen"/> | <img src="screenshots/04_interstitial_ad.png" width="220" alt="Interstitial Ad"/> |
 
-Movie cards show the title, year, and poster returned by OMDb search, keyed by IMDb ID. No separate detail requests are made for ratings or other metadata.
+---
 
-Movies and Favourites are typed Navigation Compose destinations defined with `@Serializable` objects. The Material navigation bar saves/restores tab state. Favourites uses a Room-generated `PagingSource`, ordered by most recently saved movie; inserts/deletes invalidate it automatically. Movie hearts observe Room IDs so they update across tabs without an OMDb refresh. Favourite toggling is transactional and uses the stored membership rather than a potentially stale card flag.
+## Features & Architecture
 
-Hilt creates the Home ViewModel and injects its use cases, repository, and network datasource. KSP generates the Hilt code. Domain stays free of Android and DI framework dependencies; its use cases are provided by the app module.
+* **Multi-Module Clean Architecture**:
+  * `:app` — Navigation, application class, and Hilt dependency injection.
+  * `:feature:list` — Home search screen with debounced queries (350 ms) and Paging 3 infinite scrolling.
+  * `:feature:favourites` — Local favourites persisted with Room, reactive heart icon states across tabs.
+  * `:feature:detail` — Detailed movie metadata, ratings, genre chips, and plot with collapsible bottom bar animation.
+  * `:core:network` / `:core:local` / `:core:ui` — Retrofit + OkHttp OMDb client, Room database, Material 3 design system.
+  * `:domain` / `:data` — Domain models/usecases and repository implementation.
+  * `:SDK` — Independent ad orchestration module.
 
-ViewModels extend `BaseViewModel<UIState, Intent, SideEffect>`, exposing a `StateFlow` for state, a `SharedFlow` for effects, and an `onIntent` function. Compose observes both flows with lifecycle-aware collection.
+---
 
-The base ViewModel exposes read-only state/effects and protected mutable flows for implementations. `HomeScreen()` obtains its ViewModel through Hilt internally and passes state, paged items, and callbacks to `ScreenContent()` in the same file.
+## Ad Integration (`:SDK`)
 
-The repository constructs the `Pager` and paging source in `data`, exposing `Flow<PagingData<Movie>>` through the repository contract and search use case. Domain uses the platform-independent Paging common API. The ViewModel exposes a debounced flow cached in its scope; `HomeScreen()` collects it directly with `collectAsLazyPagingItems()`. `HomeState` contains only the query. The activity hosts `MovieApp()`, whose typed navigation graph opens the argument-free `HomeScreen()` and `FavouritesScreen()`.
+Ad logic is isolated into a standalone library module with provider-agnostic contracts (`AdProvider`), currently implemented for Google AdMob (Next-Gen SDK):
 
-Data maps failures to `MovieError` types, preserving technical causes for diagnostics. The UI maps these types to string resources and uses Paging load states for full-screen or next-page error/retry presentation. API and exception messages are not displayed directly. UI labels, empty states, fallbacks, and error messages live in the owning module’s `strings.xml`.
+1. **Native Ads in Movie Grid**:
+   * Injected into the search results grid when at least 3 movies are loaded.
+   * Ad cards match the exact dimensions, `2:3` poster aspect ratio, card shape, and typography of movie cards to maintain seamless visual consistency without jumping or layout shift.
+   * Native Ad Validator overlay is suppressed in release builds via `setNativeValidatorDisabled()`.
+2. **Fullscreen Interstitial Ad**:
+   * Triggers strictly on the user's **second return to the app from the background** (Visit 1: launch, Visit 2: first return, Visit 3: second return).
+   * Orchestrated via `ProcessLifecycleOwner` and persistent visit storage.
 
-## OMDb setup
+---
 
-Add your API key from [OMDb](https://www.omdbapi.com/apikey.aspx) to the ignored `local.properties` file:
+## Release
 
-```properties
-OMDB_API_KEY=your_api_key
-```
+Pre-built, signed release APK is available in the repository:
+* **Release APK**: [`app/release/app-release.apk`](app/release/app-release.apk)
+* Built with **R8 code minification**, **resource shrinking**, and ProGuard optimization.
 
-Alternatively set the `OMDB_API_KEY` environment variable. Requests use `https://www.omdbapi.com/` with `apikey`, `s`, `type=movie`, and `page` query parameters. Rebuild after changing the key. Without a key, searching displays a configuration message.
-
-## Build
-
-The project uses AGP 9.4.1, Gradle 9.6, and JDK 17 or newer. Run:
-
+To build locally:
 ```shell
-./gradlew :app:assembleDebug
+./gradlew :app:assembleRelease
 ```
 
-Test sources are temporarily shelved outside the project; test dependencies remain available for restoring them later.
+---
+
+## Configuration & Setup
+
+1. Add your OMDb API key in `local.properties`:
+   ```properties
+   OMDB_API_KEY=your_key_here
+   ```
+2. AdMob test ad units are configured by default. Custom production IDs can be provided in `local.properties`:
+   ```properties
+   ADMOB_APP_ID=your_admob_app_id
+   ADMOB_INTERSTITIAL_AD_UNIT_ID=your_interstitial_id
+   ADMOB_NATIVE_AD_UNIT_ID=your_native_id
+   ```
